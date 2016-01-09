@@ -131,12 +131,13 @@ class ControllerModuleBasicImporter extends Controller {
 							'subtract' => 0,
 							'stock_status_id' => 0,
 							'manufacturer_id' => 0,
-							'shipping,points' => 0,
-							'weight' => 0,
+							'shipping' => 1,
+							'points' => 0,
+							'weight' => 1,
 							'weight_class_id' => 0,
-							'length' => 0,
-							'width' => 0,
-							'height' => 0,
+							'length' => 1,
+							'width' => 1,
+							'height' => 1,
 							'length_class_id' => 0,
 							'status' => 1,
 							'tax_class_id' => 0,
@@ -172,7 +173,10 @@ class ControllerModuleBasicImporter extends Controller {
 
 			foreach($product as $item) {
 				$test = $this->model_catalog_product->getProduct($item);
+
+				
 				if (!$test) {
+					print_r ($item);
 				  $this->model_catalog_product->addProduct($item);
 				}
 			}
