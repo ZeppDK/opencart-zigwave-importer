@@ -103,6 +103,7 @@ class ControllerModuleBasicImporter extends Controller {
 				$product [$sku] = array ('name' => $name, 
 							 'model' => $name,
 							 'sku' => $sku, 
+							
 							 'product_description' => array ( 1 => array ( $description) ), 
 							 'date_added' => time(),
 							 'date_modified' => time(),
@@ -134,7 +135,10 @@ class ControllerModuleBasicImporter extends Controller {
 			$products = $this->model_catalog_product->getProducts(array());
 
 			foreach($product as $item) {
-				$this->model_catalog_product->addProduct($item);
+				$test = $this->model_catalog_product->getProduct($item);
+				if (!$test) {
+				  $this->model_catalog_product->addProduct($item);
+				}
 			}
 
 			$this->session->data['success'] = $this->language->get('text_success');
@@ -218,6 +222,13 @@ class ControllerModuleBasicImporter extends Controller {
 			$data['error_pricelist_name'] = '';
 		}
 
+		// GUI error
+		if (isset($this->error['multiplication_name'])) {
+			$data['error_multiplication_name'] = $this->error['multiplication_name'];
+		} else {
+			$data['error_multiplication_name'] = '';
+		}
+
 		if (isset($this->request->post['catalog_name'])) {
 			$data['catalogname'] = $this->request->post['catalogname'];
 		} elseif (!empty($module_info)) {
@@ -233,6 +244,11 @@ class ControllerModuleBasicImporter extends Controller {
 		} else {
 			$data['pricelistname'] = '';
 		}
+
+		// Lets load the currencies. They're necessary.
+		$this->load->model('localisation/currency');
+
+		$data['currencies_available'] = $this->model_localisation_currency->getCurrencies();
 
 		$this->response->setOutput($this->load->view('module/basic_importer.tpl', $data));
 		
@@ -256,6 +272,12 @@ class ControllerModuleBasicImporter extends Controller {
                          $this->error['pricelist_name']  = $this->language->get('error_pricelist_name');
                 }        
              		
+		$multiplicationfactor = html_entity_decode($this->request->post['special_multiplication_factor'], ENT_QUOTES, 'UTF-8');
+
+                if(!is_numeric($multiplicationfactor)) {
+                         $this->error['multiplication_name'] = $this->language->get('error_multiplication_name');
+		}
+            
 
 		return !$this->error;
 	}

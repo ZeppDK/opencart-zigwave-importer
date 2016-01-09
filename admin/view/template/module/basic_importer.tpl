@@ -71,6 +71,29 @@
               </select>
             </div>
           </div>
+	  <div class="form-group">
+	    <label class="col-sm-2 control-label" for="import_currency">Currency in pricelist</label>
+	    <div class="col-sm-10">
+	    <select name="special_currency_id" id="import_currency">
+	      <?php 
+                    foreach ( $currencies_available as $currency ) {
+			$tdl = $currency['code'];
+     			echo "<option value='$tdl'>$tdl</option>";
+		    }
+	      ?>
+              
+	    </select>	
+	    </div>
+	  </div>
+	  <div class="form-group">
+	    <label class="col-sm-2 control-label" for="input-banner">Multiplication factor</label>
+	    <div class="col-sm-10">
+	    <input type="text" name="special_multiplication_factor" required placeholder="Enter a value in the format 0.00"></input>
+	    <?php if ($error_multiplication_name) { ?>
+            <div class="text-danger"><?php echo $error_multiplication_name; ?></div>
+            <?php } ?>
+	    </div>
+	  </div>
 	</form>
       </div>
     </div>
