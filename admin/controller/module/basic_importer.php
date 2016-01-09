@@ -12,6 +12,11 @@ class ControllerModuleBasicImporter extends Controller {
 
 		$this->load->model('extension/module');		
 
+		// Lets load the currencies. They're necessary.
+		$this->load->model('localisation/currency');
+
+		$currencies = $this->model_localisation_currency->getCurrencies();
+
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 
 			// Allowed file extension types
@@ -78,11 +83,19 @@ class ControllerModuleBasicImporter extends Controller {
 			$pricelist = array();
 			$catalog = array();
 
-			
+			// find the source currency, to import from.
+			$importcurrencycode = $this->request->post['import_currency'];
+
+			// Make sure, we convert the unit price into the default currency.
+			$fromvalue = $currencies[$importcurrencycode]['value'];
+
+			// We need the profit-scaling,
+			$profitpercentage = $this->request->post['special_multiplication_factor'];
+							
 			if ($catalog_filename_type == "text/csv") {
 				$Data = str_getcsv($catalog_content, "\n"); //parse the rows 
 				foreach($Data as &$Row) {
-					$Row = str_getcsv($Row, ";"); //parse the items in row
+					$Row = str_getcsv($Row, ","); //parse the items in row
 					$catalog []= $Row;
 				}			     
 			}
@@ -90,7 +103,7 @@ class ControllerModuleBasicImporter extends Controller {
 			if ($pricelist_filename_type == "text/csv") {
 			        $Data = str_getcsv($pricelist_content, "\n"); //parse the rows 
 				foreach($Data as &$Row) { 
-					$Row = str_getcsv($Row, ";"); //parse the items in row
+					$Row = str_getcsv($Row, ","); //parse the items in row
 					$pricelist []= $Row;
 				}
 			}
@@ -103,11 +116,11 @@ class ControllerModuleBasicImporter extends Controller {
 				$product [$sku] = array ('name' => $name, 
 							 'model' => $name,
 							 'sku' => $sku, 
-							
 							 'product_description' => array ( 1 => array ( $description) ), 
 							 'date_added' => time(),
 							 'date_modified' => time(),
 							 'date_available' => time(),
+						   	 'quantity' => 1,
 				);
 			}
 
@@ -117,9 +130,9 @@ class ControllerModuleBasicImporter extends Controller {
 				$name = $entry[0];
 				$sku = $entry[1];
 		
-				$personalprice = $entry[3];
+				$personalprice = $entry[3] * $fromvalue;
 			
-				$product [$sku]['price'] = $personalprice + ($personalprice * 0.25);
+				$product [$sku]['price'] = $personalprice + ($personalprice * $profitpercentage);
 				
  				$product[$sku]['product_discount'] = array('customer_group_id' => $this->request->post['special_group_id'], 'priority' => 999, 'price' => 					$product[$sku]['price']);
 
@@ -245,10 +258,7 @@ class ControllerModuleBasicImporter extends Controller {
 			$data['pricelistname'] = '';
 		}
 
-		// Lets load the currencies. They're necessary.
-		$this->load->model('localisation/currency');
-
-		$data['currencies_available'] = $this->model_localisation_currency->getCurrencies();
+		$data['currencies_available'] = $currencies;
 
 		$this->response->setOutput($this->load->view('module/basic_importer.tpl', $data));
 		
