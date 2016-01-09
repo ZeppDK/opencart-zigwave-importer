@@ -120,7 +120,32 @@ class ControllerModuleBasicImporter extends Controller {
 							 'date_added' => time(),
 							 'date_modified' => time(),
 							 'date_available' => time(),
-						   	 'quantity' => 1,
+						   	 'quantity' => 1, 
+							 'upc' => 0, 
+							 'ean' => 0,
+							 'jan' => 0,
+							 'isbn' => 0,
+							 'mpn' => 0, 
+							'location' => "DK",
+							'minimum' => 0,
+							'subtract' => 0,
+							'stock_status_id' => 0,
+							'manufacturer_id' => 0,
+							'shipping,points' => 0,
+							'weight' => 0,
+							'weight_class_id' => 0,
+							'length' => 0,
+							'width' => 0,
+							'height' => 0,
+							'length_class_id' => 0,
+							'status' => 1,
+							'tax_class_id' => 0,
+							'sort_order' => 0,
+							'description' => 0,
+							'tag' => 0,
+							'meta_title' => 0,
+							'meta_description' => 0,
+							'meta_keyword' => 0, 
 				);
 			}
 
@@ -132,7 +157,7 @@ class ControllerModuleBasicImporter extends Controller {
 		
 				$personalprice = $entry[3] * $fromvalue;
 			
-				$product [$sku]['price'] = $personalprice + ($personalprice * $profitpercentage);
+				$product [$sku]['price'] = $personalprice * $profitpercentage;
 				
  				$product[$sku]['product_discount'] = array('customer_group_id' => $this->request->post['special_group_id'], 'priority' => 999, 'price' => 					$product[$sku]['price']);
 
@@ -144,8 +169,6 @@ class ControllerModuleBasicImporter extends Controller {
 			unset($pricelist);
 			
 			$this->load->model('catalog/product');
-
-			$products = $this->model_catalog_product->getProducts(array());
 
 			foreach($product as $item) {
 				$test = $this->model_catalog_product->getProduct($item);
