@@ -72,7 +72,7 @@
             </div>
           </div>
 	  <div class="form-group">
-	    <label class="col-sm-2 control-label" for="import_currency">Currency in pricelist</label>
+	    <label class="col-sm-2 control-label" for="import_currency">Source currency</label>
 	    <div class="col-sm-10">
 	    <select name="special_currency_id" id="import_currency">
 	      <?php 
