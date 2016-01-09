@@ -12,6 +12,11 @@ class ControllerModuleBasicImporter extends Controller {
 
 		$this->load->model('extension/module');		
 
+		// Lets load the currencies. They're necessary.
+		$this->load->model('localisation/currency');
+
+		$currencies = $this->model_localisation_currency->getCurrencies();
+
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 
 			// Allowed file extension types
@@ -78,11 +83,19 @@ class ControllerModuleBasicImporter extends Controller {
 			$pricelist = array();
 			$catalog = array();
 
-			
+			// find the source currency, to import from.
+			$importcurrencycode = $this->request->post['import_currency'];
+
+			// Make sure, we convert the unit price into the default currency.
+			$fromvalue = $currencies[$importcurrencycode]['value'];
+
+			// We need the profit-scaling,
+			$profitpercentage = $this->request->post['special_multiplication_factor'];
+							
 			if ($catalog_filename_type == "text/csv") {
 				$Data = str_getcsv($catalog_content, "\n"); //parse the rows 
 				foreach($Data as &$Row) {
-					$Row = str_getcsv($Row, ";"); //parse the items in row
+					$Row = str_getcsv($Row, ","); //parse the items in row
 					$catalog []= $Row;
 				}			     
 			}
@@ -90,7 +103,7 @@ class ControllerModuleBasicImporter extends Controller {
 			if ($pricelist_filename_type == "text/csv") {
 			        $Data = str_getcsv($pricelist_content, "\n"); //parse the rows 
 				foreach($Data as &$Row) { 
-					$Row = str_getcsv($Row, ";"); //parse the items in row
+					$Row = str_getcsv($Row, ","); //parse the items in row
 					$pricelist []= $Row;
 				}
 			}
@@ -107,6 +120,33 @@ class ControllerModuleBasicImporter extends Controller {
 							 'date_added' => time(),
 							 'date_modified' => time(),
 							 'date_available' => time(),
+						   	 'quantity' => 1, 
+							 'upc' => 0, 
+							 'ean' => 0,
+							 'jan' => 0,
+							 'isbn' => 0,
+							 'mpn' => 0, 
+							'location' => "DK",
+							'minimum' => 0,
+							'subtract' => 0,
+							'stock_status_id' => 0,
+							'manufacturer_id' => 0,
+							'shipping' => 1,
+							'points' => 0,
+							'weight' => 1,
+							'weight_class_id' => 0,
+							'length' => 1,
+							'width' => 1,
+							'height' => 1,
+							'length_class_id' => 0,
+							'status' => 1,
+							'tax_class_id' => 0,
+							'sort_order' => 0,
+							'description' => 0,
+							'tag' => 0,
+							'meta_title' => 0,
+							'meta_description' => 0,
+							'meta_keyword' => 0, 
 				);
 			}
 
@@ -116,9 +156,9 @@ class ControllerModuleBasicImporter extends Controller {
 				$name = $entry[0];
 				$sku = $entry[1];
 		
-				$personalprice = $entry[3];
+				$personalprice = $entry[3] * $fromvalue;
 			
-				$product [$sku]['price'] = $personalprice + ($personalprice * 0.25);
+				$product [$sku]['price'] = $personalprice * $profitpercentage;
 				
  				$product[$sku]['product_discount'] = array('customer_group_id' => $this->request->post['special_group_id'], 'priority' => 999, 'price' => 					$product[$sku]['price']);
 
@@ -131,10 +171,13 @@ class ControllerModuleBasicImporter extends Controller {
 			
 			$this->load->model('catalog/product');
 
-			$products = $this->model_catalog_product->getProducts(array());
-
 			foreach($product as $item) {
-				$this->model_catalog_product->addProduct($item);
+				// TODO: Make a test, involving getProducts($array = ('filters')), to prevent duplicates.
+				// $test = $this->model_catalog_product->getProduct($item);
+
+				// if (!$test) {
+				  $this->model_catalog_product->addProduct($item);
+				// }
 			}
 
 			$this->session->data['success'] = $this->language->get('text_success');
@@ -218,6 +261,13 @@ class ControllerModuleBasicImporter extends Controller {
 			$data['error_pricelist_name'] = '';
 		}
 
+		// GUI error
+		if (isset($this->error['multiplication_name'])) {
+			$data['error_multiplication_name'] = $this->error['multiplication_name'];
+		} else {
+			$data['error_multiplication_name'] = '';
+		}
+
 		if (isset($this->request->post['catalog_name'])) {
 			$data['catalogname'] = $this->request->post['catalogname'];
 		} elseif (!empty($module_info)) {
@@ -233,6 +283,8 @@ class ControllerModuleBasicImporter extends Controller {
 		} else {
 			$data['pricelistname'] = '';
 		}
+
+		$data['currencies_available'] = $currencies;
 
 		$this->response->setOutput($this->load->view('module/basic_importer.tpl', $data));
 		
@@ -256,6 +308,12 @@ class ControllerModuleBasicImporter extends Controller {
                          $this->error['pricelist_name']  = $this->language->get('error_pricelist_name');
                 }        
              		
+		$multiplicationfactor = html_entity_decode($this->request->post['special_multiplication_factor'], ENT_QUOTES, 'UTF-8');
+
+                if(!is_numeric($multiplicationfactor)) {
+                         $this->error['multiplication_name'] = $this->language->get('error_multiplication_name');
+		}
+            
 
 		return !$this->error;
 	}

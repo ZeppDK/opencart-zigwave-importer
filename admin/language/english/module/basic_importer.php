@@ -20,3 +20,4 @@ $_['entry_special_list_price'] = 'The special price belongs to the following cus
 $_['error_permission'] = 'Warning: You do not have permission to Z-wave importer.';
 $_['error_catalog_name']       = 'Catalog name must be between 3 and 255 characters!';
 $_['error_pricelist_name']       = 'Pricelist must be between 3 and 255 characters!';
+$_['error_multiplication_name']  = 'Multiplication factor must på a decimal.';
