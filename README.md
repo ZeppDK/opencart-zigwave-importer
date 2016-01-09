@@ -1,2 +1,2 @@
 # opencart-zigwave-importer
-An openwave zigwave importer
+An opencart zigwave importer
