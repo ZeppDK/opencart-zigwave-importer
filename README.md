@@ -1,2 +1,2 @@
 # opencart-zigwave-importer
-An openwave zigbee importer
+An openwave zigwave importer
