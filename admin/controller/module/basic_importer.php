@@ -172,13 +172,12 @@ class ControllerModuleBasicImporter extends Controller {
 			$this->load->model('catalog/product');
 
 			foreach($product as $item) {
-				$test = $this->model_catalog_product->getProduct($item);
+				// TODO: Make a test, involving getProducts($array = ('filters')), to prevent duplicates.
+				// $test = $this->model_catalog_product->getProduct($item);
 
-				
-				if (!$test) {
-					print_r ($item);
+				// if (!$test) {
 				  $this->model_catalog_product->addProduct($item);
-				}
+				// }
 			}
 
 			$this->session->data['success'] = $this->language->get('text_success');
